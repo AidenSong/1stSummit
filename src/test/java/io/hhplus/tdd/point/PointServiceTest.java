@@ -2,9 +2,12 @@ package io.hhplus.tdd.point;
 
 import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.database.UserPointTable;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
@@ -12,13 +15,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-class PointServiceTest {
+
+@ExtendWith(MockitoExtension.class)
+public class PointServiceTest {
+
 
     @Mock
-    UserPointTable upt;
+    private UserPointTable upt;
 
     @Mock
-    PointHistoryTable pht;
+    private PointHistoryTable pht;
+
+    public PointServiceTest(UserPointTable upt, PointHistoryTable pht) {
+        this.upt = upt;
+        this.pht = pht;
+    }
+
 
 
     @DisplayName("유저 포인트 확인")
@@ -72,8 +84,7 @@ class PointServiceTest {
 
     @DisplayName("포인트 충전")
     @Test
-    void charge() throws Exception {
-
+    public void charge() throws Exception {
 
         // Given
         long id = 1L;
@@ -88,11 +99,9 @@ class PointServiceTest {
 
         // When
         if (amount <= 0) {
-            throw new Exception("충전 금액응 1원 이상이여야 합니다.");
-        }
-        if (upt.selectById(id).point() + amount < 10000) {
+            throw new Exception("충전 금액은 1원 이상이여야 합니다.");
+        } else if (upt.selectById(id).point() + amount > 10000) {
             throw new Exception("충전 가능 금액 초과");
-
         }
 
         UserPoint userPoint1 = upt.selectById(1L);
@@ -101,15 +110,15 @@ class PointServiceTest {
         UserPoint point1 = new UserPoint(1L, userPoint1.point() + amount, 100);
         UserPoint point2 = new UserPoint(2L, userPoint2.point() + amount, 100);
 
-
         // Then
         assertThat(point1.point()).isEqualTo(7000);
-        assertThat(point1.point()).isEqualTo(10000);
-
+        assertThat(point2.point()).isEqualTo(10000);
     }
+
+
     @DisplayName("포인트 사용")
     @Test
-    void use() throws Exception {
+    public void use() throws Exception {
         // Given
         long id = 1L;
         long amount = 2000;
@@ -134,6 +143,6 @@ class PointServiceTest {
 
         // Then
         assertThat(point1.point()).isEqualTo(3000);
-        assertThat(point1.point()).isEqualTo(7000);
+        assertThat(point2.point()).isEqualTo(7000);
     }
 }

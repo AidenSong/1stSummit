@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 
-@Service
+@Service("pointService")
 public class PointServiceImpl implements PointService {
 
     @Autowired
@@ -41,14 +41,14 @@ public class PointServiceImpl implements PointService {
     public UserPoint charge(long id, long amount) throws Exception {
         UserPoint chargeResult;
 
-        if (amount <= 0) {
-            throw new Exception("충전 금액응 1원 이상이여야 합니다.");
-        } else if (userPointTable.selectById(id).point() + amount < 1000) {
-            throw new Exception("충전 가능 금액 초과");
-        }
 
         lock.lock();
         try {
+            if (amount <= 0) {
+                throw new Exception("충전 금액응 1원 이상이여야 합니다.");
+            } else if (userPointTable.selectById(id).point() + amount < 10000) {
+                throw new Exception("충전 가능 금액 초과");
+            }
             chargeResult = userPointTable.insertOrUpdate(id, amount);
             pointHistoryTable.insert(id, amount, TransactionType.CHARGE, 1000);
         } finally {
@@ -62,14 +62,14 @@ public class PointServiceImpl implements PointService {
     public UserPoint use(long id, long amount) throws Exception {
         UserPoint useResult;
 
-        if (amount <= 0) {
-            throw new Exception("사용 금액은 1원 이상이여야 합니다.");
-        } else if (userPointTable.selectById(id).point() - amount < 0) {
-            throw new Exception("잔고가 부족합니다.");
-        }
 
         lock.lock();
         try {
+            if (amount <= 0) {
+                throw new Exception("사용 금액은 1원 이상이여야 합니다.");
+            } else if (userPointTable.selectById(id).point() - amount < 0) {
+                throw new Exception("잔고가 부족합니다.");
+            }
             useResult = userPointTable.insertOrUpdate(id, amount);
             pointHistoryTable.insert(id, amount, TransactionType.USE, 1000);
         } finally {
